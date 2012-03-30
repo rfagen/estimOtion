@@ -4,19 +4,19 @@ require 'eventmachine'
 require 'json'
 require 'dm-core'
 require 'dm-serializer'
-require 'lib/estimotion_config'
-require 'lib/model/Game'
-require 'lib/model/JiraCard'
-require 'lib/estimotion_helpers'
+require_relative 'lib/estimotion_config'
+require_relative 'lib/model/Game'
+require_relative 'lib/model/JiraCard'
+require_relative 'lib/estimotion_helpers'
 
 host = '0.0.0.0'
 port = EstimotionConfig.websocket_server.port
 
-module FlashPolicyServer  
+module FlashPolicyServer
   def receive_data(data)
     send_data(respond_with_policy(data))
   end
-  
+
     def respond_with_policy(request)
       policy = %Q{<?xml version="1.0"?>
   <!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">
@@ -29,6 +29,10 @@ end
 
 EventMachine.run do
   include EstimotionHelpers
+
+  # this prevents the "undefined method `include?' for nil:NilClass (NoMethodError)" error
+  DataMapper.finalize
+
   DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/db/game.db")
   @estimation_party = EM::Channel.new
 
@@ -36,13 +40,13 @@ EventMachine.run do
     # fires when we open a connection
     ws.onopen do
       puts "connection open"
-      
+
       # Register the estimation party listener
       sid = @estimation_party.subscribe do |msg|
         puts "Sending data to the front end"
-        ws.send msg 
+        ws.send msg
       end
-      
+
       # fires when we receive a message on the channel
       ws.onmessage do |msg|
         puts "on message called"
@@ -52,13 +56,16 @@ EventMachine.run do
 
         jira_card = JiraCard.first(:jira_card_id => "#{parsed_message['id']}", :game => game)
 
+        puts "calling jira_card#update() with :location => #{parsed_message['location']}"
+        #puts "jira_card.inspect = #{jira_card.inspect}"
+
         jira_card.update!(:location => "#{parsed_message['location']}", :updated_at => Time.now)
 
         cards = JiraCard.all(:game => game, :order => [:updated_at.asc])
 
         @estimation_party.push "#{build_json(game, cards)}"
       end
-      
+
       # fires when someone leaves
       ws.onclose do
         @estimation_party.unsubscribe(sid)

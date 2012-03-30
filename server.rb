@@ -1,15 +1,16 @@
 require 'rubygems'
-require 'lib/estimotion_config'
+#require 'bundler/setup'
+require_relative 'lib/estimotion_config'
 require 'erb'
 require 'sinatra'
 require 'dm-core'
 require 'dm-migrations'
 require 'dm-serializer'
-require 'lib/model/Game'
-require 'lib/model/JiraCard'
-require 'lib/jira'
-require 'lib/estimotion_helpers'
-require 'rack-flash'
+require_relative 'lib/model/Game'
+require_relative 'lib/model/JiraCard'
+require_relative 'lib/jira'
+require_relative 'lib/estimotion_helpers'
+require 'sinatra/flash'
 require 'sinatra/content_for'
 
 
@@ -17,13 +18,13 @@ class EstimOtion < Sinatra::Base
   include EstimotionHelpers
 
   set :port,  EstimotionConfig.server.port
-
-  use Rack::Flash
   set :root, File.dirname(__FILE__)
   set :sessions, true
   set :layout, true
 
-  configure do 
+  register Sinatra::Flash
+
+  configure do
     DataMapper.finalize
     DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/db/game.db")
     DataMapper.auto_upgrade!
@@ -51,7 +52,7 @@ class EstimOtion < Sinatra::Base
     errors = validate_form_input(game, params)
     issues = (errors.empty?) ? Jira.get_issues(params['game-jql']) : []
 
-    if errors.empty? && !issues.empty? 
+    if errors.empty? && !issues.empty?
       game.save
 
       issues.each do |issue|
@@ -59,9 +60,9 @@ class EstimOtion < Sinatra::Base
         jira_card = JiraCard.new(:jira_card_id => jira_card_id, :ticket_number => issue.key, :summary => issue.summary, :game => game)
         jira_card.save!
       end
-      
+
       redirect "/game/#{game.id}"
-    else 
+    else
       errors << "No issues returned from Jira for the given JQL" if errors.empty? && issues.empty?
 
       flash["game-name"] = params["game-name"]
@@ -85,7 +86,7 @@ class EstimOtion < Sinatra::Base
   get '/tasks' do
     game = Game.get(1)
     jira_cards = JiraCard.all(:game => game, :order => [:updated_at.asc])
-    
+
     erb :tasks, :locals => {
       :host_name => @env['SERVER_NAME'],
       :game => game,

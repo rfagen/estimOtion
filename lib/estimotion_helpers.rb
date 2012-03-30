@@ -1,3 +1,5 @@
+require 'json'
+
 module EstimotionHelpers
 
   def build_json(game, cards)

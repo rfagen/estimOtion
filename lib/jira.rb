@@ -13,11 +13,14 @@ class Jira
   def self.get_issues(jql)
     issues = []
 
-    begin 
+    begin
       jira = Jira4R::JiraTool.new(2, SERVER)
       jira.login(USERNAME, PASSWORD)
 
-      jira.getIssuesFromJqlSearch(jql, RESULTS_LIMIT).collect do |issue|
+      # WTF is the getIssuesFromJqlSearchReturn() call needed???
+      soap_response = jira.getIssuesFromJqlSearch(jql, RESULTS_LIMIT).getIssuesFromJqlSearchReturn
+
+      soap_response.collect do |issue|
         issues << issue
       end
     rescue => e
