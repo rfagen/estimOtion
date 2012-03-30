@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nohup rake start &
+nohup bundle exec rake start &

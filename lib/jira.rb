@@ -18,7 +18,8 @@ class Jira
       jira.login(USERNAME, PASSWORD)
 
       # WTF is the getIssuesFromJqlSearchReturn() call needed???
-      soap_response = jira.getIssuesFromJqlSearch(jql, RESULTS_LIMIT).getIssuesFromJqlSearchReturn
+      soap_response = jira.getIssuesFromJqlSearch(jql, RESULTS_LIMIT)
+      #soap_response = jira.getIssuesFromJqlSearch(jql, RESULTS_LIMIT).getIssuesFromJqlSearchReturn
 
       soap_response.collect do |issue|
         issues << issue

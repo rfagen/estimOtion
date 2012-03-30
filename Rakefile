@@ -1,14 +1,14 @@
 namespace :websocket do
   task :start do
     puts "Starting Websocket Server..."
-    `ruby websocket_server.rb`
+    `bundle exec ruby websocket_server.rb`
   end
 end
 
 namespace :sinatra do
   task :start do
     puts "Starting Sinatra Web Server"
-    `ruby server.rb`
+    `bundle exec ruby server.rb`
   end
 end
 
