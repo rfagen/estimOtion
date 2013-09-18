@@ -1,1 +1,15 @@
 A web based version of the "Planning Game"
+
+Installation Notes
+
+0. Make sure you have ruby installed (beyond the scope of this doc)
+1. Download the zip file from github
+2. Unzip in a directory
+3. Edit estimotion_config.yml.example, update the parameters and save as estimotion_config.yml in the same directory
+4. Run 'bundle' -- this will install all of the requirements
+5. Run 'start.sh' 
+  * this will output the logs into nohup.out
+  * if you want to watch along then before running start.sh, execute 'tail -f nohup.out &'
+6. In your browser, load "localhost:4567" and you should see the 'start'/'join' page.
+
+
